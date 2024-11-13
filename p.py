@@ -47,8 +47,8 @@ def main():
     st.subheader("Application Details")
     Gender = st.radio("Select your Gender:", ("Male", "Female"))
     Married = st.radio("Marital Status:", ("Unmarried", "Married"))
-    ApplicantIncome = st.slider("Applicant's Monthly Income (in USD)", min_value=0, max_value=20000, step=500, value=5000)
-    LoanAmount = st.slider("Loan Amount Requested (in USD)", min_value=0, max_value=500000, step=1000, value=150000)
+    ApplicantIncome = st.slider("Applicant's Monthly Income (in USD)", min_value=0, max_value=200000, step=500, value=5000)
+    LoanAmount = st.slider("Loan Amount Requested (in USD)", min_value=0, max_value=50000, step=1000, value=150000)
     Credit_History = st.selectbox("Credit History Status:", ("Unclear Debts", "No Unclear Debts"))
 
     # Adjusted threshold without scaling
