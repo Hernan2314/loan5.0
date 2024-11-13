@@ -15,7 +15,7 @@ def load_model_and_scaler():
     return classifier, scaler
 
 # Prediction function for single input
-def prediction(Gender, Married, ApplicantIncome, LoanAmount, Credit_History):
+def prediction(classifier, scaler, Gender, Married, ApplicantIncome, LoanAmount, Credit_History):
     # Pre-process user input
     Gender = 0 if Gender == "Male" else 1
     Married = 0 if Married == "Unmarried" else 1
@@ -85,7 +85,7 @@ def main():
 
         # Prediction Button
         if st.button("Predict My Loan Status"):
-            result = prediction(Gender, Married, ApplicantIncome, LoanAmount, Credit_History)
+            result = prediction(classifier, scaler, Gender, Married, ApplicantIncome, LoanAmount, Credit_History)
             
             # Display Prediction Outcome
             if result == "Approved":
@@ -109,3 +109,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
