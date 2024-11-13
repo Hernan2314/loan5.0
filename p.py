@@ -1,6 +1,7 @@
 import streamlit as st
 import numpy as np
 import joblib
+import matplotlib.pyplot as plt
 
 # Load the model and scaler with caching
 @st.cache(allow_output_mutation=True)
@@ -85,6 +86,29 @@ def main():
             explanation = "The loan application met the approval criteria based on the provided details."
         st.write(explanation)
 
+        # Plot Graph 1: Loan Amount vs. Applicant Income
+        st.write("#### Loan Amount vs. Applicant Income")
+        fig1, ax1 = plt.subplots()
+        ax1.bar(["Income", "Loan Requested"], [ApplicantIncome, LoanAmount * 1000])
+        ax1.set_ylabel("Amount in USD")
+        ax1.set_title("Comparison of Income and Loan Requested")
+        st.pyplot(fig1)
+        
+        # Plot Graph 2: Key Features Impacting Decision
+        st.write("#### Key Factors Affecting Approval Status")
+        fig2, ax2 = plt.subplots()
+        factors = ["Credit History", "Income vs Loan Threshold", "Marital & Income Status"]
+        impact = [
+            1 if Credit_History == 1 else 0,
+            1 if LoanAmount <= ApplicantIncome * income_threshold else 0,
+            1 if Married == 1 or ApplicantIncome >= 3000 else 0
+        ]
+        ax2.bar(factors, impact, color=["green" if x == 1 else "red" for x in impact])
+        ax2.set_ylim(0, 1.5)
+        ax2.set_ylabel("Approval Factor")
+        ax2.set_title("Influence of Each Factor on Approval Decision")
+        st.pyplot(fig2)
+
         # Executive Summary Section
         st.write("---")
         st.subheader("Executive Summary")
@@ -119,5 +143,4 @@ def main():
 
 if __name__ == '__main__':
     main()
-
 
