@@ -2,6 +2,8 @@ import streamlit as st
 import numpy as np
 import joblib
 import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
 
 # Load the model and scaler with caching
 @st.cache(allow_output_mutation=True)
@@ -11,6 +13,17 @@ def load_model_and_scaler():
         classifier = joblib.load(model_file)
     scaler = joblib.load('scaler.pkl')
     return classifier, scaler
+
+# Load a sample dataset for visualization (replace with actual data)
+@st.cache(allow_output_mutation=True)
+def load_data():
+    # Placeholder data; replace with actual dataset for better context in visualizations
+    data = pd.DataFrame({
+        'Income': np.random.randint(1000, 20000, 100),
+        'LoanAmount': np.random.randint(5000, 500000, 100) / 1000,
+        'Credit_History': np.random.choice([0, 1], 100)
+    })
+    return data
 
 # Prediction function for single input
 def prediction(classifier, scaler, Gender, Married, ApplicantIncome, LoanAmount, Credit_History):
@@ -46,7 +59,7 @@ def main():
     st.markdown('<p class="title">💼 Loan Approval Pro</p>', unsafe_allow_html=True)
     st.markdown('<p class="subtitle">A Trusted Solution for Financial Decision Making</p>', unsafe_allow_html=True)
 
-    # Additional Information Section with expandable explanations
+    # Introductory Information Sections
     with st.expander("About This Tool"):
         st.write("""
             Loan Approval Pro is designed to help financial institutions make data-driven decisions on loan applications. By leveraging historical data, 
@@ -57,14 +70,10 @@ def main():
             This tool uses a machine learning model trained on historical loan data. It considers various factors, including gender, marital status, income,
             loan amount, and credit history, to provide a loan approval prediction.
         """)
-    with st.expander("Why Was My Application Rejected?"):
-        st.write("""
-            Rejections may be due to insufficient income, a high loan amount relative to income, or unclear credit history. 
-            Adjusting these factors may improve the likelihood of approval.
-        """)
 
-    # Load model and scaler
+    # Load model, scaler, and data for visualizations
     classifier, scaler = load_model_and_scaler()
+    data = load_data()
 
     # Input Form for single entry
     st.markdown("### Application Details")
@@ -97,50 +106,65 @@ def main():
             **Decision**: The loan application was **{result}** based on the applicant's profile and historical approval criteria.
         """)
 
-        # Explanation for approval or rejection based on inputs
-        st.subheader("Explanation of the Decision")
-        if result == "Approved":
-            explanation = "The loan application was approved because it met the required criteria. Factors supporting approval include:\n"
-            if Credit_History == 1:
-                explanation += "- Positive credit history.\n"
-            if LoanAmount <= ApplicantIncome * income_threshold:
-                explanation += "- Loan amount is within an acceptable range based on the applicant's income.\n"
-            if Married == 1 or ApplicantIncome >= 3000:
-                explanation += "- Sufficient income level for marital status.\n"
+        # Plot 1: Scatter plot of Income vs Loan Amount
+        st.subheader("Income vs. Loan Amount Requested")
+        fig, ax = plt.subplots()
+        sns.scatterplot(x="Income", y="LoanAmount", hue="Credit_History", data=data, ax=ax)
+        ax.axvline(ApplicantIncome, color="red", linestyle="--", label="Your Income")
+        ax.axhline(LoanAmount, color="blue", linestyle="--", label="Requested Loan Amount")
+        plt.legend()
+        st.pyplot(fig)
+
+        # Explanation for scatter plot based on result
+        if result == "Rejected":
+            st.write("🔍 **Explanation**: The income vs. loan amount plot shows your position relative to other applicants. "
+                     "If your requested loan amount is significantly higher than the average for your income level, this could contribute to a rejection.")
         else:
-            explanation = "The loan application was rejected due to the following reasons:\n"
-            if Credit_History == 0:
-                explanation += "- Poor credit history.\n"
-            if LoanAmount > ApplicantIncome * income_threshold:
-                explanation += "- The requested loan amount is high relative to income.\n"
-            if Married == 0 and ApplicantIncome < 3000:
-                explanation += "- Insufficient income for an unmarried applicant.\n"
-        st.write(explanation)
+            st.write("🔍 **Explanation**: Your loan request amount aligns with the range of other applicants with similar income, which likely supported the approval decision.")
 
-        # Plot Graph 1: Income and Loan Requested Comparison
-        st.write("#### Income vs. Loan Amount Requested")
-        fig1, ax1 = plt.subplots()
-        ax1.bar(["Applicant Income", "Loan Requested"], [ApplicantIncome, LoanAmount])
-        ax1.set_ylabel("Amount (USD)")
-        ax1.set_title("Comparison of Applicant's Monthly Income and Loan Requested Amount")
-        st.pyplot(fig1)
+        # Plot 2: Histogram of Loan Amounts
+        st.subheader("Distribution of Loan Amounts")
+        fig, ax = plt.subplots()
+        sns.histplot(data['LoanAmount'], bins=20, color="skyblue", ax=ax)
+        ax.axvline(LoanAmount, color="blue", linestyle="--", label="Requested Loan Amount")
+        plt.legend()
+        st.pyplot(fig)
 
-        # Plot Graph 2: Approval Factors Impact
-        st.write("#### Key Approval Factors")
-        fig2, ax2 = plt.subplots()
-        factors = ["Credit History", "Income vs Loan Threshold", "Marital & Income Status"]
-        scores = [
-            1 if Credit_History == 1 else 0,
-            1 if LoanAmount <= ApplicantIncome * income_threshold else 0,
-            1 if Married == 1 or ApplicantIncome >= 3000 else 0
-        ]
-        colors = ["green" if score == 1 else "red" for score in scores]
-        ax2.barh(factors, scores, color=colors)
-        ax2.set_xlim(0, 1.5)
-        ax2.set_xlabel("Approval Indicator (1 = Meets Criteria, 0 = Does Not)")
-        st.pyplot(fig2)
+        # Explanation for histogram based on result
+        if result == "Rejected":
+            st.write("🔍 **Explanation**: The requested loan amount is shown on the histogram. If your amount is much higher than the average loan requests, "
+                     "this could indicate a higher risk, leading to a rejection.")
+        else:
+            st.write("🔍 **Explanation**: Your requested loan amount is within the typical range, which may have positively impacted the approval decision.")
 
-if __name__ == '__main__':
-    main()
+        # Plot 3: Approval Rate by Credit History
+        st.subheader("Approval Rate by Credit History")
+        approval_rate = data['Credit_History'].value_counts()
+        fig, ax = plt.subplots()
+        approval_rate.plot(kind="bar", color=["salmon", "lightgreen"], ax=ax)
+        ax.set_ylabel("Number of Applicants")
+        st.pyplot(fig)
 
-  
+        # Explanation for approval rate by credit history based on result
+        if result == "Rejected":
+            st.write("🔍 **Explanation**: Approval rates by credit history indicate that applicants with unclear debts are less likely to be approved. "
+                     "Improving your credit history could enhance approval chances.")
+        else:
+            st.write("🔍 **Explanation**: Having a clear credit history is often associated with higher approval rates, which may have contributed to your approval.")
+
+    # Additional Information Section at the end
+    st.write("---")
+    with st.expander("Why Was My Application Rejected?"):
+        st.write("""
+            Rejections may be due to insufficient income, a high loan amount relative to income, or unclear credit history. 
+            Adjusting these factors may improve the likelihood of approval.
+        """)
+    with st.expander("Why Was My Application Approved?"):
+        st.write("""
+            Approval can be attributed to factors such as sufficient income, a loan amount within a reasonable range, and a good credit history.
+            Meeting these criteria improves the chances of approval.
+        """)
+    with st.expander("Improving Your Approval Chances"):
+        st.write("""
+            To increase the likelihood of loan approval, consider building a stronger credit
+
