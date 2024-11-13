@@ -80,11 +80,11 @@ def main():
         # Explanation of Decision
         st.subheader("Explanation of the Decision")
         if result == "Approved":
-            st.write("The loan application was approved because it met the required criteria:")
+            st.write("The loan application was approved because it met the following criteria:")
             if Credit_History == 1:
                 st.write("- Positive credit history.")
             if LoanAmount <= ApplicantIncome * income_threshold:
-                st.write(f"- The loan amount (${LoanAmount}) is within an acceptable range relative to the income (${ApplicantIncome}).")
+                st.write("- The loan amount is within an acceptable range relative to the income.")
             if Married == 1 or ApplicantIncome >= 3000:
                 st.write("- Suitable income level and/or marital status supported approval.")
         else:
@@ -92,7 +92,7 @@ def main():
             if Credit_History == 0:
                 st.write("- Poor credit history.")
             if LoanAmount > ApplicantIncome * income_threshold:
-                st.write(f"- The loan amount (${LoanAmount}) is high relative to the income (${ApplicantIncome}).")
+                st.write("- The loan amount is high relative to the income.")
             if Married == 0 and ApplicantIncome < 3000:
                 st.write("- Low income level for unmarried applicants.")
 
