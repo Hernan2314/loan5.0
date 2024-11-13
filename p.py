@@ -11,27 +11,29 @@ def load_model_and_scaler():
     scaler = joblib.load('scaler.pkl')
     return classifier, scaler
 
-# Prediction function for single input
-def prediction(classifier, scaler, Gender, Married, Dependents, Education, Self_Employed,
-               ApplicantIncome, CoapplicantIncome, LoanAmount, Loan_Amount_Term, Credit_History, Property_Area):
-    
-    # Pre-process user input
-    Gender = 0 if Gender == "Male" else 1
-    Married = 0 if Married == "Unmarried" else 1
-    Dependents = int(Dependents) if Dependents.isdigit() else 0
-    Education = 0 if Education == "Graduate" else 1
-    Self_Employed = 0 if Self_Employed == "No" else 1
-    Property_Area = {"Urban": 0, "Semiurban": 1, "Rural": 2}[Property_Area]  # Encode Property Area
-    
-    # Create input feature array
-    features = np.array([Gender, Married, Dependents, Education, Self_Employed,
-                         ApplicantIncome, CoapplicantIncome, LoanAmount, Loan_Amount_Term,
-                         Credit_History, Property_Area])
-    
-    # Scale the features
-    scaled_features = scaler.transform([features])
+# Impute missing values with predefined defaults, similar to notebook imputation logic
+def impute_missing_values(features):
+    # Define default values for imputation, following the notebook’s approach
+    defaults = {
+        'Gender': 0,  # Default to Male
+        'Married': 0,  # Default to Unmarried
+        'Dependents': 0,  # Default to 0 dependents
+        'Education': 0,  # Default to Graduate
+        'Self_Employed': 0,  # Default to No
+        'ApplicantIncome': 5000,  # Default income
+        'CoapplicantIncome': 0,  # Default to no coapplicant income
+        'LoanAmount': 150,  # Default loan amount (median in thousands)
+        'Loan_Amount_Term': 360,  # Default term in months
+        'Credit_History': 1,  # Default to clear debts
+        'Property_Area': 0  # Default to Urban
+    }
+    return [features.get(key, defaults[key]) for key in defaults]
 
-    # Predict with scaled features
+# Prediction function for single input
+def prediction(classifier, scaler, **kwargs):
+    # Pre-process user input
+    features = impute_missing_values(kwargs)
+    scaled_features = scaler.transform([features])
     prediction = classifier.predict(scaled_features)
     return 'Approved' if prediction == 1 else 'Rejected'
 
@@ -92,40 +94,36 @@ def main():
     Credit_History = st.selectbox("Credit History Status:", ("Unclear Debts", "No Unclear Debts"), help="Specify the applicant's credit history status.")
     Property_Area = st.selectbox("Property Area:", ("Urban", "Semiurban", "Rural"), help="Choose the area where the property is located.")
 
-    # Convert Credit_History to numeric
-    Credit_History = 0 if Credit_History == "Unclear Debts" else 1
-
-    # Check if loan amount is too high relative to income
-    income_threshold = 2  # Adjusted threshold for direct comparison
-    if LoanAmount > ApplicantIncome * income_threshold:
-        st.warning("⚠️ The requested loan amount is high relative to the applicant's income, which may impact approval.")
+    # Convert inputs to match model expectations
+    input_data = {
+        'Gender': 0 if Gender == "Male" else 1,
+        'Married': 0 if Married == "Unmarried" else 1,
+        'Dependents': int(Dependents) if Dependents.isdigit() else 3,  # Convert "3+" to 3
+        'Education': 0 if Education == "Graduate" else 1,
+        'Self_Employed': 0 if Self_Employed == "No" else 1,
+        'ApplicantIncome': ApplicantIncome,
+        'CoapplicantIncome': CoapplicantIncome,
+        'LoanAmount': LoanAmount / 1000,  # Assuming LoanAmount was scaled in thousands
+        'Loan_Amount_Term': Loan_Amount_Term,
+        'Credit_History': 0 if Credit_History == "Unclear Debts" else 1,
+        'Property_Area': {"Urban": 0, "Semiurban": 1, "Rural": 2}[Property_Area]
+    }
 
     # Prediction Button
     if st.button("Predict My Loan Status", help="Click to predict the loan approval status based on the provided details"):
-        result = prediction(classifier, scaler, Gender, Married, Dependents, Education, Self_Employed,
-                            ApplicantIncome, CoapplicantIncome, LoanAmount, Loan_Amount_Term, Credit_History, Property_Area)
+        result = prediction(classifier, scaler, **input_data)
 
         # Display approval or rejection message
         if result == "Approved":
             st.success("✅ Your loan application status: Approved")
         else:
             st.error("❌ Your loan application status: Rejected")
-        
+
         # Summary Section
         st.write("---")
         st.markdown('<p class="label">Summary</p>', unsafe_allow_html=True)
-        st.write(f"**Gender**: {Gender}")
-        st.write(f"**Marital Status**: {Married}")
-        st.write(f"**Dependents**: {Dependents}")
-        st.write(f"**Education Level**: {Education}")
-        st.write(f"**Self Employed**: {Self_Employed}")
-        st.write(f"**Applicant Income**: ${ApplicantIncome}")
-        st.write(f"**Coapplicant Income**: ${CoapplicantIncome}")
-        st.write(f"**Loan Amount Requested**: ${LoanAmount}")
-        st.write(f"**Loan Amount Term**: {Loan_Amount_Term} months")
-        st.write(f"**Credit History**: {Credit_History}")
-        st.write(f"**Property Area**: {Property_Area}")
-        st.write(f"**Decision**: The loan application was **{result}**.")
+        for key, value in input_data.items():
+            st.write(f"**{key.replace('_', ' ').title()}**: {value}")
 
     # Additional Information Section at the end
     st.write("---")
@@ -138,5 +136,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
