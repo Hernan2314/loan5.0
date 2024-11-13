@@ -97,19 +97,19 @@ def main():
         if result == "Approved":
             explanation += "The loan application was approved because it met the required criteria. Here are the positive factors that supported your approval:\n"
             if Credit_History == 1:
-                explanation += "- Positive credit history: Clear credit history often leads to higher approval chances.\n"
+                explanation += "- **Positive credit history**: Clear credit history often leads to higher approval chances.\n"
             if LoanAmount <= ApplicantIncome * income_threshold:
-                explanation += f"- Loan amount within a reasonable range: The requested loan amount (${LoanAmount}) is proportionate to your monthly income (${ApplicantIncome}).\n"
+                explanation += f"- **Loan amount within a reasonable range**: The requested loan amount (${LoanAmount:,}) is proportionate to your monthly income (${ApplicantIncome:,}).\n"
             if Married == 1 or ApplicantIncome >= 3000:
-                explanation += "- Sufficient income and/or marital status: Either your income or marital status is suitable, which supports the approval.\n"
+                explanation += "- **Sufficient income and/or marital status**: Either your income or marital status is suitable, which supports the approval.\n"
         else:
             explanation += "The loan application was rejected due to the following reasons:\n"
             if Credit_History == 0:
-                explanation += "- Poor credit history: Unclear debts can negatively impact loan approval.\n"
+                explanation += "- **Poor credit history**: Unclear debts can negatively impact loan approval.\n"
             if LoanAmount > ApplicantIncome * income_threshold:
-                explanation += f"- High loan amount relative to income: The requested loan amount (${LoanAmount}) is high compared to your monthly income (${ApplicantIncome}), which could be seen as risky.\n"
+                explanation += f"- **High loan amount relative to income**: The requested loan amount (${LoanAmount:,}) is high compared to your monthly income (${ApplicantIncome:,}), which could be seen as risky.\n"
             if Married == 0 and ApplicantIncome < 3000:
-                explanation += "- Low income for unmarried applicants: Lower income levels may reduce approval chances, particularly for unmarried individuals.\n"
+                explanation += "- **Low income for unmarried applicants**: Lower income levels may reduce approval chances, particularly for unmarried individuals.\n"
         st.write(explanation)
 
     # Additional Information Section at the end
