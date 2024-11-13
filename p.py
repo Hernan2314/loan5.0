@@ -166,5 +166,13 @@ def main():
         """)
     with st.expander("Improving Your Approval Chances"):
         st.write("""
-            To increase the likelihood of loan approval, consider building a stronger credit
+            To increase the likelihood of loan approval, consider building a stronger credit history, ensuring your requested loan amount is reasonable relative to income, 
+            and maintaining a stable income level. 
+        """)
+
+if __name__ == '__main__':
+    main()
+
+
+   
 
