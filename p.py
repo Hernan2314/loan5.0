@@ -46,6 +46,23 @@ def main():
     st.markdown('<p class="title">💼 Loan Approval Pro</p>', unsafe_allow_html=True)
     st.markdown('<p class="subtitle">A Trusted Solution for Financial Decision Making</p>', unsafe_allow_html=True)
 
+    # Additional Information Section with expandable explanations
+    with st.expander("About This Tool"):
+        st.write("""
+            Loan Approval Pro is designed to help financial institutions make data-driven decisions on loan applications. By leveraging historical data, 
+            this tool evaluates key factors and provides an approval prediction based on the applicant's profile.
+        """)
+    with st.expander("How the Prediction Works"):
+        st.write("""
+            This tool uses a machine learning model trained on historical loan data. It considers various factors, including gender, marital status, income,
+            loan amount, and credit history, to provide a loan approval prediction.
+        """)
+    with st.expander("Why Was My Application Rejected?"):
+        st.write("""
+            Rejections may be due to insufficient income, a high loan amount relative to income, or unclear credit history. 
+            Adjusting these factors may improve the likelihood of approval.
+        """)
+
     # Load model and scaler
     classifier, scaler = load_model_and_scaler()
 
@@ -66,52 +83,9 @@ def main():
     if st.button("Predict My Loan Status"):
         result = prediction(classifier, scaler, Gender, Married, ApplicantIncome, LoanAmount, Credit_History)
         
-        # Display Prediction Outcome
-        if result == "Approved":
-            st.markdown("<div class='success-text'>✅ Your loan application status: **Approved**</div>", unsafe_allow_html=True)
-        else:
-            st.error(f'❌ Your loan application status: **Rejected**')
-
-        # Explanation for approval or rejection based on inputs
-        st.subheader("Explanation of the Decision")
-        explanation = ""
-        if Credit_History == 0:
-            explanation += "- Poor credit history may have impacted the decision.\n"
-        if LoanAmount > ApplicantIncome * income_threshold:
-            explanation += "- The requested loan amount is high relative to income, which can affect approval likelihood.\n"
-        if Married == 0 and ApplicantIncome < 3000:
-            explanation += "- Low income may impact the decision, especially for unmarried applicants.\n"
-        
-        if explanation == "":
-            explanation = "The loan application met the approval criteria based on the provided details."
-        st.write(explanation)
-
-        # Plot Graph 1: Loan Amount vs. Applicant Income
-        st.write("#### Loan Amount vs. Applicant Income")
-        fig1, ax1 = plt.subplots()
-        ax1.bar(["Income", "Loan Requested"], [ApplicantIncome, LoanAmount * 1000])
-        ax1.set_ylabel("Amount in USD")
-        ax1.set_title("Comparison of Income and Loan Requested")
-        st.pyplot(fig1)
-        
-        # Plot Graph 2: Key Features Impacting Decision
-        st.write("#### Key Factors Affecting Approval Status")
-        fig2, ax2 = plt.subplots()
-        factors = ["Credit History", "Income vs Loan Threshold", "Marital & Income Status"]
-        impact = [
-            1 if Credit_History == 1 else 0,
-            1 if LoanAmount <= ApplicantIncome * income_threshold else 0,
-            1 if Married == 1 or ApplicantIncome >= 3000 else 0
-        ]
-        ax2.bar(factors, impact, color=["green" if x == 1 else "red" for x in impact])
-        ax2.set_ylim(0, 1.5)
-        ax2.set_ylabel("Approval Factor")
-        ax2.set_title("Influence of Each Factor on Approval Decision")
-        st.pyplot(fig2)
-
-        # Executive Summary Section
+        # Summary Section
         st.write("---")
-        st.subheader("Executive Summary")
+        st.subheader("Summary")
         st.write(f"""
             **Applicant Details**
             - **Gender**: {Gender}
@@ -123,24 +97,50 @@ def main():
             **Decision**: The loan application was **{result}** based on the applicant's profile and historical approval criteria.
         """)
 
-    # Additional Information Section with expandable explanations
-    st.write("---")
-    with st.expander("About This Tool"):
-        st.write("""
-            Loan Approval Pro is designed to help financial institutions make data-driven decisions on loan applications. By leveraging historical data, 
-            this tool evaluates key factors and provides an approval prediction based on the applicant's profile.
-        """)
-    with st.expander("How the Prediction Works"):
-        st.write("""
-            This tool uses a machine learning model trained on historical loan data. It considers various factors, including gender, marital status, income,
-            loan amount, and credit history, to provide a loan approval prediction.
-        """)
-    with st.expander("Why Was My Application Rejected?"):
-        st.write("""
-            Rejections may be due to insufficient income, a high loan amount relative to income, or unclear credit history. 
-            Adjusting these factors may improve the likelihood of approval.
-        """)
+        # Explanation for approval or rejection based on inputs
+        st.subheader("Explanation of the Decision")
+        if result == "Approved":
+            explanation = "The loan application was approved because it met the required criteria. Factors supporting approval include:\n"
+            if Credit_History == 1:
+                explanation += "- Positive credit history.\n"
+            if LoanAmount <= ApplicantIncome * income_threshold:
+                explanation += "- Loan amount is within an acceptable range based on the applicant's income.\n"
+            if Married == 1 or ApplicantIncome >= 3000:
+                explanation += "- Sufficient income level for marital status.\n"
+        else:
+            explanation = "The loan application was rejected due to the following reasons:\n"
+            if Credit_History == 0:
+                explanation += "- Poor credit history.\n"
+            if LoanAmount > ApplicantIncome * income_threshold:
+                explanation += "- The requested loan amount is high relative to income.\n"
+            if Married == 0 and ApplicantIncome < 3000:
+                explanation += "- Insufficient income for an unmarried applicant.\n"
+        st.write(explanation)
+
+        # Plot Graph 1: Income and Loan Requested Comparison
+        st.write("#### Income vs. Loan Amount Requested")
+        fig1, ax1 = plt.subplots()
+        ax1.bar(["Applicant Income", "Loan Requested"], [ApplicantIncome, LoanAmount])
+        ax1.set_ylabel("Amount (USD)")
+        ax1.set_title("Comparison of Applicant's Monthly Income and Loan Requested Amount")
+        st.pyplot(fig1)
+
+        # Plot Graph 2: Approval Factors Impact
+        st.write("#### Key Approval Factors")
+        fig2, ax2 = plt.subplots()
+        factors = ["Credit History", "Income vs Loan Threshold", "Marital & Income Status"]
+        scores = [
+            1 if Credit_History == 1 else 0,
+            1 if LoanAmount <= ApplicantIncome * income_threshold else 0,
+            1 if Married == 1 or ApplicantIncome >= 3000 else 0
+        ]
+        colors = ["green" if score == 1 else "red" for score in scores]
+        ax2.barh(factors, scores, color=colors)
+        ax2.set_xlim(0, 1.5)
+        ax2.set_xlabel("Approval Indicator (1 = Meets Criteria, 0 = Does Not)")
+        st.pyplot(fig2)
 
 if __name__ == '__main__':
     main()
 
+  
