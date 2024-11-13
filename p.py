@@ -37,9 +37,9 @@ def main():
 
     # Introductory Information Sections
     with st.expander("About This Tool"):
-        st.write("Loan Approval Pro is designed to help financial institutions make data-driven decisions on loan applications. By leveraging historical data, this tool evaluates key factors and provides an approval prediction based on the applicant's profile.")
+        st.write("Loan Approval Pro helps financial institutions make data-driven decisions on loan applications using key applicant details.")
     with st.expander("How the Prediction Works"):
-        st.write("This tool uses a machine learning model trained on historical loan data. It considers various factors, including gender, marital status, income, loan amount, and credit history, to provide a loan approval prediction.")
+        st.write("This tool uses a machine learning model trained on historical loan data, considering factors like gender, marital status, income, loan amount, and credit history.")
 
     # Load model and scaler
     classifier, scaler = load_model_and_scaler()
@@ -51,6 +51,11 @@ def main():
     ApplicantIncome = st.slider("Applicant's Monthly Income (in USD)", min_value=0, max_value=20000, step=500, value=5000)
     LoanAmount = st.slider("Loan Amount Requested (in USD)", min_value=0, max_value=500000, step=1000, value=150000)
     Credit_History = st.selectbox("Credit History Status:", ("Unclear Debts", "No Unclear Debts"))
+
+    # Check if loan amount is too high relative to income
+    income_threshold = 5  # Threshold for affordability
+    if LoanAmount > ApplicantIncome * income_threshold:
+        st.warning("⚠️ The requested loan amount is high relative to the applicant's income, which may impact approval.")
 
     # Prediction Button
     if st.button("Predict My Loan Status"):
@@ -64,35 +69,35 @@ def main():
         st.write(f"**Monthly Income**: ${ApplicantIncome}")
         st.write(f"**Loan Amount Requested**: ${LoanAmount}")
         st.write(f"**Credit History**: {Credit_History}")
-        st.write(f"**Decision**: The loan application was **{result}** based on the applicant's profile and historical approval criteria.")
+        st.write(f"**Decision**: The loan application was **{result}**.")
 
         # Explanation of Decision
         st.subheader("Explanation of the Decision")
         if result == "Approved":
-            st.write("The loan application was approved because it met the required criteria.")
+            st.write("The loan application was approved because it met the required criteria:")
             if Credit_History == 1:
                 st.write("- Positive credit history.")
-            if LoanAmount <= ApplicantIncome * 5:
-                st.write(f"- The loan amount (${LoanAmount}) is within an acceptable range compared to your income (${ApplicantIncome}).")
+            if LoanAmount <= ApplicantIncome * income_threshold:
+                st.write(f"- Loan amount (${LoanAmount}) is within an acceptable range relative to income (${ApplicantIncome}).")
             if Married == 1 or ApplicantIncome >= 3000:
-                st.write("- Your income and/or marital status supported the approval.")
+                st.write("- Suitable income level and/or marital status supported approval.")
         else:
-            st.write("The loan application was rejected due to the following reasons:")
+            st.write("The loan application was rejected for the following reasons:")
             if Credit_History == 0:
                 st.write("- Poor credit history.")
-            if LoanAmount > ApplicantIncome * 5:
-                st.write(f"- The loan amount (${LoanAmount}) is high compared to your income (${ApplicantIncome}).")
+            if LoanAmount > ApplicantIncome * income_threshold:
+                st.write(f"- Loan amount (${LoanAmount}) is high relative to income (${ApplicantIncome}).")
             if Married == 0 and ApplicantIncome < 3000:
                 st.write("- Low income level for unmarried applicants.")
 
     # Additional Information Section at the end
     st.write("---")
     with st.expander("Why Was My Application Rejected?"):
-        st.write("Rejections may be due to insufficient income, a high loan amount relative to income, or unclear credit history. Adjusting these factors may improve the likelihood of approval.")
+        st.write("Rejections may be due to insufficient income, a high loan amount relative to income, or unclear credit history. Adjusting these factors may improve approval chances.")
     with st.expander("Why Was My Application Approved?"):
-        st.write("Approval can be attributed to factors such as sufficient income, a loan amount within a reasonable range, and a good credit history. Meeting these criteria improves the chances of approval.")
+        st.write("Approval can result from sufficient income, a reasonable loan amount, and a good credit history. Meeting these criteria improves approval chances.")
     with st.expander("Improving Your Approval Chances"):
-        st.write("To increase the likelihood of loan approval, consider building a stronger credit history, ensuring your requested loan amount is reasonable relative to income, and maintaining a stable income level.")
+        st.write("To increase approval likelihood, consider building a stronger credit history, ensuring your loan amount is reasonable relative to income, and maintaining a stable income level.")
 
 if __name__ == '__main__':
     main()
