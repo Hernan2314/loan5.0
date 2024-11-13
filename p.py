@@ -18,18 +18,18 @@ def prediction(classifier, scaler, Gender, Married, Dependents, Education, Self_
     # Pre-process user input
     Gender = 0 if Gender == "Male" else 1
     Married = 0 if Married == "Unmarried" else 1
-    Dependents = int(Dependents) if Dependents.isdigit() else 0  # Convert Dependents to integer
+    Dependents = int(Dependents) if Dependents.isdigit() else 0
     Education = 0 if Education == "Graduate" else 1
     Self_Employed = 0 if Self_Employed == "No" else 1
     Property_Area = {"Urban": 0, "Semiurban": 1, "Rural": 2}[Property_Area]  # Encode Property Area
     
-    # Input features array with all required inputs
+    # Create input feature array
     features = np.array([Gender, Married, Dependents, Education, Self_Employed,
                          ApplicantIncome, CoapplicantIncome, LoanAmount, Loan_Amount_Term,
                          Credit_History, Property_Area])
     
     # Scale the features
-    scaled_features = scaler.transform([features])  # Wrap with an extra [] for 2D input
+    scaled_features = scaler.transform([features])
 
     # Predict with scaled features
     prediction = classifier.predict(scaled_features)
@@ -138,4 +138,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
