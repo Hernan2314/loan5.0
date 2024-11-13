@@ -12,14 +12,23 @@ def load_model_and_scaler():
     return classifier, scaler
 
 # Prediction function for single input
-def prediction(classifier, scaler, Gender, Married, ApplicantIncome, LoanAmount, Credit_History):
+def prediction(classifier, scaler, Gender, Married, Dependents, Education, Self_Employed,
+               ApplicantIncome, CoapplicantIncome, LoanAmount, Loan_Amount_Term, Credit_History, Property_Area):
+    
     # Pre-process user input
     Gender = 0 if Gender == "Male" else 1
     Married = 0 if Married == "Unmarried" else 1
-    Credit_History = 0 if Credit_History == "Unclear Debts" else 1
-    # Remove scaling from LoanAmount
-    # LoanAmount is now assumed to be in full dollar values
-    features = np.array([Gender, Married, ApplicantIncome, LoanAmount, Credit_History, 0, 0, 0, 0, 0, 0])
+    Dependents = int(Dependents) if Dependents.isdigit() else 0  # Convert Dependents to integer
+    Education = 0 if Education == "Graduate" else 1
+    Self_Employed = 0 if Self_Employed == "No" else 1
+    Property_Area = {"Urban": 0, "Semiurban": 1, "Rural": 2}[Property_Area]  # Encode Property Area
+    
+    # Input features array with all required inputs
+    features = np.array([Gender, Married, Dependents, Education, Self_Employed,
+                         ApplicantIncome, CoapplicantIncome, LoanAmount, Loan_Amount_Term,
+                         Credit_History, Property_Area])
+    
+    # Scale the features
     scaled_features = scaler.transform([features])  # Wrap with an extra [] for 2D input
 
     # Predict with scaled features
@@ -47,18 +56,28 @@ def main():
     st.subheader("Application Details")
     Gender = st.radio("Select your Gender:", ("Male", "Female"))
     Married = st.radio("Marital Status:", ("Unmarried", "Married"))
-    ApplicantIncome = st.slider("Applicant's Monthly Income (in USD)", min_value=0, max_value=200000, step=500, value=5000)
-    LoanAmount = st.slider("Loan Amount Requested (in USD)", min_value=0, max_value=50000, step=1000, value=150000)
+    Dependents = st.selectbox("Number of Dependents:", ("0", "1", "2", "3+"))
+    Education = st.radio("Education Level:", ("Graduate", "Not Graduate"))
+    Self_Employed = st.radio("Self Employed:", ("No", "Yes"))
+    ApplicantIncome = st.slider("Applicant's Monthly Income (in USD)", min_value=0, max_value=20000, step=500, value=5000)
+    CoapplicantIncome = st.slider("Coapplicant's Monthly Income (in USD)", min_value=0, max_value=10000, step=500, value=0)
+    LoanAmount = st.slider("Loan Amount Requested (in USD)", min_value=0, max_value=500000, step=1000, value=150000)
+    Loan_Amount_Term = st.slider("Loan Amount Term (in months)", min_value=12, max_value=480, step=12, value=360)
     Credit_History = st.selectbox("Credit History Status:", ("Unclear Debts", "No Unclear Debts"))
+    Property_Area = st.selectbox("Property Area:", ("Urban", "Semiurban", "Rural"))
 
-    # Adjusted threshold without scaling
+    # Convert Credit_History to numeric
+    Credit_History = 0 if Credit_History == "Unclear Debts" else 1
+
+    # Check if loan amount is too high relative to income
     income_threshold = 2  # Adjusted threshold for direct comparison
     if LoanAmount > ApplicantIncome * income_threshold:
         st.warning("⚠️ The requested loan amount is high relative to the applicant's income, which may impact approval.")
 
     # Prediction Button
     if st.button("Predict My Loan Status"):
-        result = prediction(classifier, scaler, Gender, Married, ApplicantIncome, LoanAmount, Credit_History)
+        result = prediction(classifier, scaler, Gender, Married, Dependents, Education, Self_Employed,
+                            ApplicantIncome, CoapplicantIncome, LoanAmount, Loan_Amount_Term, Credit_History, Property_Area)
 
         # Display approval or rejection message
         if result == "Approved":
@@ -71,9 +90,15 @@ def main():
         st.subheader("Summary")
         st.write(f"**Gender**: {Gender}")
         st.write(f"**Marital Status**: {Married}")
-        st.write(f"**Monthly Income**: ${ApplicantIncome}")
+        st.write(f"**Dependents**: {Dependents}")
+        st.write(f"**Education Level**: {Education}")
+        st.write(f"**Self Employed**: {Self_Employed}")
+        st.write(f"**Applicant Income**: ${ApplicantIncome}")
+        st.write(f"**Coapplicant Income**: ${CoapplicantIncome}")
         st.write(f"**Loan Amount Requested**: ${LoanAmount}")
+        st.write(f"**Loan Amount Term**: {Loan_Amount_Term} months")
         st.write(f"**Credit History**: {Credit_History}")
+        st.write(f"**Property Area**: {Property_Area}")
         st.write(f"**Decision**: The loan application was **{result}**.")
 
         # Explanation of Decision
@@ -106,4 +131,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
