@@ -17,9 +17,8 @@ def prediction(classifier, scaler, Gender, Married, ApplicantIncome, LoanAmount,
     Gender = 0 if Gender == "Male" else 1
     Married = 0 if Married == "Unmarried" else 1
     Credit_History = 0 if Credit_History == "Unclear Debts" else 1
-    LoanAmount = LoanAmount / 1000  # Scale loan amount if required
-
-    # Fill missing features with placeholder values (e.g., 0)
+    # Remove scaling from LoanAmount
+    # LoanAmount is now assumed to be in full dollar values
     features = np.array([Gender, Married, ApplicantIncome, LoanAmount, Credit_History, 0, 0, 0, 0, 0, 0])
     scaled_features = scaler.transform([features])  # Wrap with an extra [] for 2D input
 
@@ -52,8 +51,8 @@ def main():
     LoanAmount = st.slider("Loan Amount Requested (in USD)", min_value=0, max_value=500000, step=1000, value=150000)
     Credit_History = st.selectbox("Credit History Status:", ("Unclear Debts", "No Unclear Debts"))
 
-    # Check if loan amount is too high relative to income
-    income_threshold = 2  # Threshold for affordability
+    # Adjusted threshold without scaling
+    income_threshold = 2  # Adjusted threshold for direct comparison
     if LoanAmount > ApplicantIncome * income_threshold:
         st.warning("⚠️ The requested loan amount is high relative to the applicant's income, which may impact approval.")
 
@@ -107,3 +106,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
