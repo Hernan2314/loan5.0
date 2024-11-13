@@ -53,7 +53,7 @@ def main():
     Credit_History = st.selectbox("Credit History Status:", ("Unclear Debts", "No Unclear Debts"))
 
     # Check if loan amount is too high relative to income
-    income_threshold = 5  # Threshold for affordability
+    income_threshold = 2  # Threshold for affordability
     if LoanAmount > ApplicantIncome * income_threshold:
         st.warning("⚠️ The requested loan amount is high relative to the applicant's income, which may impact approval.")
 
