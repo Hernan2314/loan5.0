@@ -60,6 +60,12 @@ def main():
     # Prediction Button
     if st.button("Predict My Loan Status"):
         result = prediction(classifier, scaler, Gender, Married, ApplicantIncome, LoanAmount, Credit_History)
+
+        # Display approval or rejection message
+        if result == "Approved":
+            st.success("✅ Your loan application status: Approved")
+        else:
+            st.error("❌ Your loan application status: Rejected")
         
         # Summary Section
         st.write("---")
@@ -78,7 +84,7 @@ def main():
             if Credit_History == 1:
                 st.write("- Positive credit history.")
             if LoanAmount <= ApplicantIncome * income_threshold:
-                st.write(f"- Loan amount (${LoanAmount}) is within an acceptable range relative to income (${ApplicantIncome}).")
+                st.write(f"- The loan amount (${LoanAmount}) is within an acceptable range relative to the income (${ApplicantIncome}).")
             if Married == 1 or ApplicantIncome >= 3000:
                 st.write("- Suitable income level and/or marital status supported approval.")
         else:
@@ -86,7 +92,7 @@ def main():
             if Credit_History == 0:
                 st.write("- Poor credit history.")
             if LoanAmount > ApplicantIncome * income_threshold:
-                st.write(f"- Loan amount (${LoanAmount}) is high relative to income (${ApplicantIncome}).")
+                st.write(f"- The loan amount (${LoanAmount}) is high relative to the income (${ApplicantIncome}).")
             if Married == 0 and ApplicantIncome < 3000:
                 st.write("- Low income level for unmarried applicants.")
 
