@@ -39,9 +39,19 @@ def prediction(classifier, scaler, Gender, Married, Dependents, Education, Self_
 def main():
     st.set_page_config(page_title="Loan Approval Pro", page_icon="💼", layout="centered")
 
+    # Custom CSS for styling
+    st.markdown("""
+        <style>
+        .title { font-size: 2.5em; font-weight: bold; color: #2e3a45; }
+        .subtitle { font-size: 1.2em; color: #6c757d; }
+        .label { font-weight: bold; font-size: 1.1em; color: #333; }
+        .info { color: #0066cc; font-style: italic; }
+        </style>
+        """, unsafe_allow_html=True)
+
     # Branding and Title
-    st.title("💼 Loan Approval Pro")
-    st.subheader("A Trusted Solution for Financial Decision Making")
+    st.markdown('<p class="title">💼 Loan Approval Pro</p>', unsafe_allow_html=True)
+    st.markdown('<p class="subtitle">A Trusted Solution for Financial Decision Making</p>', unsafe_allow_html=True)
 
     # Introductory Information Sections
     with st.expander("About This Tool"):
@@ -53,18 +63,34 @@ def main():
     classifier, scaler = load_model_and_scaler()
 
     # Input Form for single entry
-    st.subheader("Application Details")
-    Gender = st.radio("Select your Gender:", ("Male", "Female"))
-    Married = st.radio("Marital Status:", ("Unmarried", "Married"))
-    Dependents = st.selectbox("Number of Dependents:", ("0", "1", "2", "3+"))
-    Education = st.radio("Education Level:", ("Graduate", "Not Graduate"))
-    Self_Employed = st.radio("Self Employed:", ("No", "Yes"))
-    ApplicantIncome = st.slider("Applicant's Monthly Income (in USD)", min_value=0, max_value=20000, step=500, value=5000)
-    CoapplicantIncome = st.slider("Coapplicant's Monthly Income (in USD)", min_value=0, max_value=10000, step=500, value=0)
-    LoanAmount = st.slider("Loan Amount Requested (in USD)", min_value=0, max_value=500000, step=1000, value=150000)
-    Loan_Amount_Term = st.slider("Loan Amount Term (in months)", min_value=12, max_value=480, step=12, value=360)
-    Credit_History = st.selectbox("Credit History Status:", ("Unclear Debts", "No Unclear Debts"))
-    Property_Area = st.selectbox("Property Area:", ("Urban", "Semiurban", "Rural"))
+    st.markdown('<p class="label">Application Details</p>', unsafe_allow_html=True)
+
+    # Gender and Marital Status
+    col1, col2 = st.columns(2)
+    with col1:
+        Gender = st.radio("Select your Gender:", ("Male", "Female"), help="Select the applicant's gender.")
+    with col2:
+        Married = st.radio("Marital Status:", ("Unmarried", "Married"), help="Select the applicant's marital status.")
+
+    # Dependents, Education, Self-Employed
+    Dependents = st.selectbox("Number of Dependents:", ("0", "1", "2", "3+"), help="Select the number of dependents supported by the applicant.")
+    Education = st.radio("Education Level:", ("Graduate", "Not Graduate"), help="Select the highest education level of the applicant.")
+    Self_Employed = st.radio("Self Employed:", ("No", "Yes"), help="Specify if the applicant is self-employed.")
+
+    # Income and Loan Information
+    st.markdown('<p class="label">Income and Loan Information</p>', unsafe_allow_html=True)
+    ApplicantIncome = st.slider("Applicant's Monthly Income (in USD)", min_value=0, max_value=20000, step=500, value=5000,
+                                help="Enter the monthly income of the applicant.")
+    CoapplicantIncome = st.slider("Coapplicant's Monthly Income (in USD)", min_value=0, max_value=10000, step=500, value=0,
+                                  help="Enter the monthly income of the coapplicant, if any.")
+    LoanAmount = st.slider("Loan Amount Requested (in USD)", min_value=0, max_value=500000, step=1000, value=150000,
+                           help="Enter the total loan amount requested by the applicant.")
+    Loan_Amount_Term = st.slider("Loan Amount Term (in months)", min_value=12, max_value=480, step=12, value=360,
+                                 help="Select the loan term in months.")
+
+    # Credit History and Property Area
+    Credit_History = st.selectbox("Credit History Status:", ("Unclear Debts", "No Unclear Debts"), help="Specify the applicant's credit history status.")
+    Property_Area = st.selectbox("Property Area:", ("Urban", "Semiurban", "Rural"), help="Choose the area where the property is located.")
 
     # Convert Credit_History to numeric
     Credit_History = 0 if Credit_History == "Unclear Debts" else 1
@@ -75,7 +101,7 @@ def main():
         st.warning("⚠️ The requested loan amount is high relative to the applicant's income, which may impact approval.")
 
     # Prediction Button
-    if st.button("Predict My Loan Status"):
+    if st.button("Predict My Loan Status", help="Click to predict the loan approval status based on the provided details"):
         result = prediction(classifier, scaler, Gender, Married, Dependents, Education, Self_Employed,
                             ApplicantIncome, CoapplicantIncome, LoanAmount, Loan_Amount_Term, Credit_History, Property_Area)
 
@@ -87,7 +113,7 @@ def main():
         
         # Summary Section
         st.write("---")
-        st.subheader("Summary")
+        st.markdown('<p class="label">Summary</p>', unsafe_allow_html=True)
         st.write(f"**Gender**: {Gender}")
         st.write(f"**Marital Status**: {Married}")
         st.write(f"**Dependents**: {Dependents}")
@@ -101,25 +127,6 @@ def main():
         st.write(f"**Property Area**: {Property_Area}")
         st.write(f"**Decision**: The loan application was **{result}**.")
 
-        # Explanation of Decision
-        st.subheader("Explanation of the Decision")
-        if result == "Approved":
-            st.write("The loan application was approved because it met the following criteria:")
-            if Credit_History == 1:
-                st.write("- Positive credit history.")
-            if LoanAmount <= ApplicantIncome * income_threshold:
-                st.write("- The loan amount is within an acceptable range relative to the income.")
-            if Married == 1 or ApplicantIncome >= 3000:
-                st.write("- Suitable income level and/or marital status supported approval.")
-        else:
-            st.write("The loan application was rejected for the following reasons:")
-            if Credit_History == 0:
-                st.write("- Poor credit history.")
-            if LoanAmount > ApplicantIncome * income_threshold:
-                st.write("- The loan amount is high relative to the income.")
-            if Married == 0 and ApplicantIncome < 3000:
-                st.write("- Low income level for unmarried applicants.")
-
     # Additional Information Section at the end
     st.write("---")
     with st.expander("Why Was My Application Rejected?"):
@@ -131,3 +138,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
