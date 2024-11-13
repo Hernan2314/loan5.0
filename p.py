@@ -22,11 +22,9 @@ def prediction(classifier, scaler, Gender, Married, ApplicantIncome, LoanAmount,
     Credit_History = 0 if Credit_History == "Unclear Debts" else 1
     LoanAmount = LoanAmount / 1000  # Scale loan amount if required
 
-    # Create the feature array
-    features = np.array([Gender, Married, ApplicantIncome, LoanAmount, Credit_History]).reshape(1, -1)
-
-    # Scale the features using the loaded scaler
-    scaled_features = scaler.transform(features)
+    # Fill missing features with placeholder values (e.g., 0)
+    features = np.array([Gender, Married, ApplicantIncome, LoanAmount, Credit_History, 0, 0, 0, 0, 0, 0])
+    scaled_features = scaler.transform([features])  # Wrap with an extra [] for 2D input
 
     # Predict with scaled features
     prediction = classifier.predict(scaled_features)
@@ -62,6 +60,11 @@ def main():
             
             # Drop unnecessary columns if they exist
             input_data = input_data.drop(columns=['Loan_ID', 'Loan_Status'], errors='ignore')
+
+            # Add missing features if needed
+            missing_columns = 11 - input_data.shape[1]
+            if missing_columns > 0:
+                input_data = pd.concat([input_data, pd.DataFrame(0, index=input_data.index, columns=range(missing_columns))], axis=1)
 
             # Scale the input data
             input_data_scaled = scaler.transform(input_data)
