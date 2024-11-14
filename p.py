@@ -10,7 +10,7 @@ def load_model():
         classifier = joblib.load(model_file)
     return classifier
 
-# Impute missing values and ensure correct feature order
+# Impute missing values with only the required five features
 def impute_missing_values(features):
     # Use typical values for approved applications based on your analysis
     defaults = {
@@ -18,21 +18,15 @@ def impute_missing_values(features):
         'Married': 1,              # Default to Married
         'ApplicantIncome': 3800,   # Median ApplicantIncome for approvals
         'LoanAmount': 128,         # Median LoanAmount in thousands
-        'Credit_History': 1,       # Default to clear credit history
-        'CoapplicantIncome': 0,    # Default to no coapplicant income
-        'Dependents': 0,           # Default to 0 dependents
-        'Education': 0,            # Assume Graduate
-        'Loan_Amount_Term': 360,   # Typical loan term
-        'Property_Area': 1,        # Default to Semiurban
-        'Self_Employed': 0         # Default to No
+        'Credit_History': 1        # Default to clear credit history
     }
-    # Fill missing values with defaults
+    # Fill missing values with defaults, but only for the expected five features
     filled_features = {key: features.get(key, defaults[key]) for key in defaults}
-    return pd.DataFrame([filled_features], columns=defaults.keys())
+    return pd.DataFrame([filled_features])
 
 # Prediction function for single input
 def prediction(classifier, **kwargs):
-    # Pre-process user input and ensure correct feature order
+    # Pre-process user input with only the required five features
     features = impute_missing_values(kwargs)
     
     # Predict using the raw features without scaling
@@ -84,7 +78,6 @@ def main():
     LoanAmount = st.slider("Loan Amount Requested (in thousands)", min_value=0, max_value=500, step=1, value=128,
                            help="Enter the total loan amount requested by the applicant.")
     Credit_History = st.selectbox("Credit History Status:", ("Unclear Debts", "No Unclear Debts"), help="Specify the applicant's credit history status.")
-    Self_Employed = st.radio("Self Employed:", ("No", "Yes"), help="Specify if the applicant is self-employed.")
 
     # Convert inputs to match model expectations
     input_data = {
@@ -92,8 +85,7 @@ def main():
         'Married': 0 if Married == "Unmarried" else 1,
         'ApplicantIncome': ApplicantIncome,
         'LoanAmount': LoanAmount,  # LoanAmount in thousands as per model
-        'Credit_History': 0 if Credit_History == "Unclear Debts" else 1,
-        'Self_Employed': 0 if Self_Employed == "No" else 1
+        'Credit_History': 0 if Credit_History == "Unclear Debts" else 1
     }
 
     # Prediction Button
@@ -114,7 +106,6 @@ def main():
         gender_text = "Male" if input_data['Gender'] == 0 else "Female"
         marital_status = "Unmarried" if input_data['Married'] == 0 else "Married"
         credit_text = "No Unclear Debts" if input_data['Credit_History'] == 1 else "Unclear Debts"
-        self_employed_text = "Yes" if input_data['Self_Employed'] == 1 else "No"
         
         summary_text = f"""
         - **Gender**: {gender_text}
@@ -122,7 +113,6 @@ def main():
         - **Monthly Income**: ${input_data['ApplicantIncome']}
         - **Loan Amount Requested**: ${input_data['LoanAmount']}000
         - **Credit History**: {credit_text}
-        - **Self Employed**: {self_employed_text}
         """
         
         st.markdown(summary_text)
