@@ -9,6 +9,9 @@ def load_model_and_scaler():
     with open('classifier.pkl', 'rb') as model_file:
         classifier = joblib.load(model_file)
     scaler = joblib.load('scaler.pkl')
+    # Diagnostic print to confirm features
+    st.write("Scaler expected features:", scaler.feature_names_in_)
+    st.write("Model expected features:", classifier.feature_names_in_)
     return classifier, scaler
 
 # Impute missing values and return as DataFrame with feature names
@@ -85,5 +88,6 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
