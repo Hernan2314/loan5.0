@@ -1,10 +1,6 @@
 import streamlit as st
 import joblib
 import pandas as pd
-import matplotlib.pyplot as plt
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 
 # Load the model with caching
 @st.cache(allow_output_mutation=True)
@@ -30,50 +26,6 @@ def prediction(classifier, **kwargs):
     features = impute_missing_values(kwargs)
     prediction = classifier.predict(features)
     return 'Approved' if prediction == 1 else 'Rejected'
-
-# Custom plot function for comparison chart
-def plot_comparison_chart(applicant_income, loan_amount):
-    avg_income = 3800  # Sample average for approved applicants
-    avg_loan = 128     # Sample average loan amount for approved applicants
-    fig, ax = plt.subplots()
-    ax.bar(['Applicant Income', 'Avg Income'], [applicant_income, avg_income], color=['#0066cc', '#cccccc'])
-    ax.bar(['Loan Amount', 'Avg Loan'], [loan_amount, avg_loan], color=['#0066cc', '#cccccc'])
-    st.pyplot(fig)
-
-# Email sending function
-def send_email(recipient_email, summary_text, result):
-    sender_email = "your_email@example.com"  # Replace with your email
-    password = "your_password"               # Replace with your email password
-
-    subject = "Your Loan Application Status"
-    message = MIMEMultipart()
-    message["From"] = sender_email
-    message["To"] = recipient_email
-    message["Subject"] = subject
-
-    body = f"""\
-    Dear Applicant,
-
-    Here is the summary of your loan application:
-
-    {summary_text}
-
-    Status: {result}
-
-    Thank you for using Loan Approval Pro.
-    """
-    message.attach(MIMEText(body, "plain"))
-
-    try:
-        # SMTP server setup - replace with the correct server if needed
-        with smtplib.SMTP("smtp.gmail.com", 587) as server:
-            server.starttls()  # Enable security
-            server.login(sender_email, password)
-            server.sendmail(sender_email, recipient_email, message.as_string())
-        return True
-    except Exception as e:
-        st.error(f"An error occurred while sending the email: {e}")
-        return False
 
 # Main Streamlit app function
 def main():
@@ -122,9 +74,6 @@ def main():
     Credit_History = st.selectbox("📈 Credit History Status:", ("Unclear Debts", "No Unclear Debts"), help="Specify the applicant's credit history status.")
     Self_Employed = st.radio("💼 Self Employed:", ("No", "Yes"), help="Specify if the applicant is self-employed.")
 
-    # Email input field
-    recipient_email = st.text_input("📧 Enter your email to receive the application summary (optional)")
-
     # Prepare input data for prediction
     input_data = {
         'Gender': 0 if Gender == "Male" else 1,
@@ -137,10 +86,6 @@ def main():
     # Show warning if loan amount is high relative to income
     if LoanAmount > 200 and ApplicantIncome < 3000:
         st.warning("⚠️ The requested loan amount is relatively high compared to your income, which might increase the risk of rejection.")
-
-    # Show comparison chart for Applicant vs Average Approved
-    st.write("### How You Compare to Typical Approved Applicants")
-    plot_comparison_chart(ApplicantIncome, LoanAmount)
 
     # Prediction Button
     if st.button("Predict My Loan Status"):
@@ -168,10 +113,26 @@ def main():
         
         st.markdown(summary_text)
 
-        # Send email if recipient email is provided
-        if recipient_email:
-            if send_email(recipient_email, summary_text, result):
-                st.success(f"📧 A summary has been sent to {recipient_email}")
+        # Explanation Section
+        st.write("---")
+        st.write("### Explanation:")
+        if result == "Approved":
+            st.write("Your application was **Approved** based on factors such as sufficient monthly income, a manageable loan amount, and a positive credit history.")
+        else:
+            st.write("Your application was **Rejected**. This could be due to insufficient monthly income, a high loan amount relative to your income, or an unclear credit history.")
+
+    # Additional Information Section
+    st.write("---")
+    with st.expander("Why Was My Application Rejected?"):
+        st.write("Rejections may be due to insufficient income, a high loan amount relative to income, or unclear credit history. Adjusting these factors may improve approval chances.")
+    with st.expander("Why Was My Application Approved?"):
+        st.write("Approval can result from sufficient income, a reasonable loan amount, and a good credit history. Meeting these criteria improves approval chances.")
+    with st.expander("Improving Your Approval Chances"):
+        st.write("To increase approval likelihood, consider building a stronger credit history, ensuring your loan amount is reasonable relative to income, and maintaining a stable income.")
+
+    # Contact Information Section
+    st.write("---")
+    st.write("For further questions, please contact us at [contact@loanapprovalpro.com](mailto:contact@loanapprovalpro.com)")
 
     # Disclaimer Section
     st.write("---")
@@ -180,3 +141,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
