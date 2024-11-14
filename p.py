@@ -2,46 +2,41 @@ import streamlit as st
 import joblib
 import pandas as pd
 
-# Load the model and scaler with caching
+# Load the model with caching
 @st.cache(allow_output_mutation=True)
-def load_model_and_scaler():
-    # Load the classifier and scaler
+def load_model():
+    # Load the classifier only, without the scaler
     with open('classifier.pkl', 'rb') as model_file:
         classifier = joblib.load(model_file)
-    scaler = joblib.load('scaler.pkl')
-    return classifier, scaler
+    return classifier
 
+# Impute missing values and ensure correct feature order
 def impute_missing_values(features):
     # Use typical values for approved applications based on your analysis
     defaults = {
-        'Gender': 0,               # Default to Male (since the median is 0.0 for Gender)
-        'Married': 1,              # Default to Married (since the median is 1.0 for Married)
-        'ApplicantIncome': 3800,   # Using the median for ApplicantIncome for more stability
-        'LoanAmount': 128,         # Using the median LoanAmount (in thousands)
-        'Credit_History': 1,       # Default to clear credit history, as the median is 1.0
-        # Additional columns that may be expected by the model
-        'CoapplicantIncome': 0,    # Default to no coapplicant income if it wasn't available
-        'Dependents': 0,           # Default to 0 dependents, if this is common for approvals
-        'Education': 0,            # Assume Graduate if common in approvals (if 0 represents Graduate)
-        'Loan_Amount_Term': 360,   # Typical loan term for approved loans
-        'Property_Area': 1,        # Default to Semiurban if it's common in approvals
-        'Self_Employed': 0         # Default to No if most approved applicants are not self-employed
+        'Gender': 0,               # Default to Male
+        'Married': 1,              # Default to Married
+        'ApplicantIncome': 3800,   # Median ApplicantIncome for approvals
+        'LoanAmount': 128,         # Median LoanAmount in thousands
+        'Credit_History': 1,       # Default to clear credit history
+        'CoapplicantIncome': 0,    # Default to no coapplicant income
+        'Dependents': 0,           # Default to 0 dependents
+        'Education': 0,            # Assume Graduate
+        'Loan_Amount_Term': 360,   # Typical loan term
+        'Property_Area': 1,        # Default to Semiurban
+        'Self_Employed': 0         # Default to No
     }
     # Fill missing values with defaults
     filled_features = {key: features.get(key, defaults[key]) for key in defaults}
     return pd.DataFrame([filled_features], columns=defaults.keys())
 
 # Prediction function for single input
-def prediction(classifier, scaler, **kwargs):
+def prediction(classifier, **kwargs):
     # Pre-process user input and ensure correct feature order
     features = impute_missing_values(kwargs)
     
-    # Reorder columns to match the scaler's expected feature order
-    features = features[scaler.feature_names_in_]
-    
-    # Scale the features
-    scaled_features = scaler.transform(features)
-    prediction = classifier.predict(scaled_features)
+    # Predict using the raw features without scaling
+    prediction = classifier.predict(features)
     
     return 'Approved' if prediction == 1 else 'Rejected'
 
@@ -69,8 +64,8 @@ def main():
     with st.expander("How the Prediction Works"):
         st.write("This tool uses a machine learning model trained on historical loan data, considering factors like gender, marital status, income, loan amount, and credit history.")
 
-    # Load model and scaler
-    classifier, scaler = load_model_and_scaler()
+    # Load model only
+    classifier = load_model()
 
     # Input Form for single entry
     st.markdown('<p class="label">Application Details</p>', unsafe_allow_html=True)
@@ -84,9 +79,9 @@ def main():
 
     # Income and Loan Information
     st.markdown('<p class="label">Income and Loan Information</p>', unsafe_allow_html=True)
-    ApplicantIncome = st.slider("Applicant's Monthly Income (in USD)", min_value=0, max_value=20000, step=500, value=5000,
+    ApplicantIncome = st.slider("Applicant's Monthly Income (in USD)", min_value=0, max_value=50000, step=500, value=3800,
                                 help="Enter the monthly income of the applicant.")
-    LoanAmount = st.slider("Loan Amount Requested (in thousands)", min_value=0, max_value=500, step=1, value=150,
+    LoanAmount = st.slider("Loan Amount Requested (in thousands)", min_value=0, max_value=500, step=1, value=128,
                            help="Enter the total loan amount requested by the applicant.")
     Credit_History = st.selectbox("Credit History Status:", ("Unclear Debts", "No Unclear Debts"), help="Specify the applicant's credit history status.")
     Self_Employed = st.radio("Self Employed:", ("No", "Yes"), help="Specify if the applicant is self-employed.")
@@ -103,7 +98,7 @@ def main():
 
     # Prediction Button
     if st.button("Predict My Loan Status"):
-        result = prediction(classifier, scaler, **input_data)
+        result = prediction(classifier, **input_data)
 
         # Display approval or rejection message
         if result == "Approved":
