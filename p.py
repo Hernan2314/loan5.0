@@ -39,6 +39,7 @@ def main():
         .name { font-size: 1em; font-weight: bold; color: #333333; }
         .label { font-weight: bold; font-size: 1.1em; color: #333; }
         .info { color: #0066cc; font-style: italic; }
+        .stButton>button { background-color: #0066cc; color: white; padding: 10px 20px; font-size: 1.2em; }
         </style>
         """, unsafe_allow_html=True)
 
@@ -53,23 +54,22 @@ def main():
     with st.expander("How the Prediction Works"):
         st.write("This tool uses a machine learning model trained on historical loan data, considering factors like gender, marital status, income, loan amount, and credit history.")
 
-    # Load model
     classifier = load_model()
 
-    # Input fields
+    # Input fields with icons
     st.markdown('<p class="label">Application Details</p>', unsafe_allow_html=True)
     col1, col2 = st.columns(2)
     with col1:
-        Gender = st.radio("Select your Gender:", ("Male", "Female"), help="Select the applicant's gender.")
+        Gender = st.radio("👤 Select your Gender:", ("Male", "Female"), help="Select the applicant's gender.")
     with col2:
-        Married = st.radio("Marital Status:", ("Unmarried", "Married"), help="Select the applicant's marital status.")
+        Married = st.radio("💍 Marital Status:", ("Unmarried", "Married"), help="Select the applicant's marital status.")
 
-    ApplicantIncome = st.slider("Applicant's Monthly Income (in USD)", min_value=0, max_value=50000, step=500, value=3800,
+    ApplicantIncome = st.slider("💰 Applicant's Monthly Income (in USD)", min_value=0, max_value=50000, step=500, value=3800,
                                 help="Enter the monthly income of the applicant.")
-    LoanAmount = st.slider("Loan Amount Requested (in thousands)", min_value=0, max_value=500, step=1, value=128,
+    LoanAmount = st.slider("💵 Loan Amount Requested (in thousands)", min_value=0, max_value=500, step=1, value=128,
                            help="Enter the total loan amount requested by the applicant.")
-    Credit_History = st.selectbox("Credit History Status:", ("Unclear Debts", "No Unclear Debts"), help="Specify the applicant's credit history status.")
-    Self_Employed = st.radio("Self Employed:", ("No", "Yes"), help="Specify if the applicant is self-employed.")
+    Credit_History = st.selectbox("📈 Credit History Status:", ("Unclear Debts", "No Unclear Debts"), help="Specify the applicant's credit history status.")
+    Self_Employed = st.radio("💼 Self Employed:", ("No", "Yes"), help="Specify if the applicant is self-employed.")
 
     # Prepare input data for prediction
     input_data = {
