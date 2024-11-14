@@ -9,9 +9,6 @@ def load_model_and_scaler():
     with open('classifier.pkl', 'rb') as model_file:
         classifier = joblib.load(model_file)
     scaler = joblib.load('scaler.pkl')
-    # Diagnostic print to confirm features
-    st.write("Scaler expected features:", scaler.feature_names_in_)
-    st.write("Model expected features:", classifier.feature_names_in_)
     return classifier, scaler
 
 # Impute missing values and return as DataFrame with feature names
@@ -42,24 +39,46 @@ def prediction(classifier, scaler, **kwargs):
 def main():
     st.set_page_config(page_title="Loan Approval Pro", page_icon="💼", layout="centered")
 
+    # Custom CSS for styling
+    st.markdown("""
+        <style>
+        .title { font-size: 2.5em; font-weight: bold; color: #2e3a45; }
+        .subtitle { font-size: 1.2em; color: #6c757d; }
+        .label { font-weight: bold; font-size: 1.1em; color: #333; }
+        .info { color: #0066cc; font-style: italic; }
+        </style>
+        """, unsafe_allow_html=True)
+
     # Branding and Title
-    st.markdown('<h1>💼 Loan Approval Pro</h1>', unsafe_allow_html=True)
-    st.write("Predict your loan approval status with key applicant details.")
+    st.markdown('<p class="title">💼 Loan Approval Pro</p>', unsafe_allow_html=True)
+    st.markdown('<p class="subtitle">A Trusted Solution for Financial Decision Making</p>', unsafe_allow_html=True)
+
+    # Introductory Information Sections
+    with st.expander("About This Tool"):
+        st.write("Loan Approval Pro helps financial institutions make data-driven decisions on loan applications using key applicant details.")
+    with st.expander("How the Prediction Works"):
+        st.write("This tool uses a machine learning model trained on historical loan data, considering factors like gender, marital status, income, loan amount, and credit history.")
 
     # Load model and scaler
     classifier, scaler = load_model_and_scaler()
 
     # Input Form for single entry
-    st.write("### Application Details")
+    st.markdown('<p class="label">Application Details</p>', unsafe_allow_html=True)
 
     # Gender and Marital Status
-    Gender = st.radio("Select your Gender:", ("Male", "Female"))
-    Married = st.radio("Marital Status:", ("Unmarried", "Married"))
+    col1, col2 = st.columns(2)
+    with col1:
+        Gender = st.radio("Select your Gender:", ("Male", "Female"), help="Select the applicant's gender.")
+    with col2:
+        Married = st.radio("Marital Status:", ("Unmarried", "Married"), help="Select the applicant's marital status.")
 
     # Income and Loan Information
-    ApplicantIncome = st.slider("Applicant's Monthly Income (in USD)", min_value=0, max_value=20000, step=500, value=5000)
-    LoanAmount = st.slider("Loan Amount Requested (in thousands)", min_value=0, max_value=500, step=1, value=150)
-    Credit_History = st.selectbox("Credit History Status:", ("Unclear Debts", "No Unclear Debts"))
+    st.markdown('<p class="label">Income and Loan Information</p>', unsafe_allow_html=True)
+    ApplicantIncome = st.slider("Applicant's Monthly Income (in USD)", min_value=0, max_value=20000, step=500, value=5000,
+                                help="Enter the monthly income of the applicant.")
+    LoanAmount = st.slider("Loan Amount Requested (in thousands)", min_value=0, max_value=500, step=1, value=150,
+                           help="Enter the total loan amount requested by the applicant.")
+    Credit_History = st.selectbox("Credit History Status:", ("Unclear Debts", "No Unclear Debts"), help="Specify the applicant's credit history status.")
 
     # Convert inputs to match model expectations
     input_data = {
@@ -82,12 +101,18 @@ def main():
 
         # Summary Section
         st.write("---")
-        st.write("### Summary")
+        st.markdown('<p class="label">Summary</p>', unsafe_allow_html=True)
         for key, value in input_data.items():
             st.write(f"**{key.replace('_', ' ').title()}**: {value}")
 
+    # Additional Information Section at the end
+    st.write("---")
+    with st.expander("Why Was My Application Rejected?"):
+        st.write("Rejections may be due to insufficient income, a high loan amount relative to income, or unclear credit history. Adjusting these factors may improve approval chances.")
+    with st.expander("Why Was My Application Approved?"):
+        st.write("Approval can result from sufficient income, a reasonable loan amount, and a good credit history. Meeting these criteria improves approval chances.")
+    with st.expander("Improving Your Approval Chances"):
+        st.write("To increase approval likelihood, consider building a stronger credit history, ensuring your loan amount is reasonable relative to income, and maintaining a stable income level.")
+
 if __name__ == '__main__':
     main()
-
-
-
