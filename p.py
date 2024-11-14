@@ -86,16 +86,11 @@ def main():
     if st.button("Predict My Loan Status"):
         result = prediction(classifier, **input_data)
 
-        # Display approval or rejection message
-        if result == "Approved":
-            st.success("✅ Your loan application status: Approved")
-        else:
-            st.error("❌ Your loan application status: Rejected")
-
         # Summary Section
         st.write("---")
         st.markdown('<p class="label">Application Summary</p>', unsafe_allow_html=True)
         
+        # Display summary of inputs
         gender_text = "Male" if input_data['Gender'] == 0 else "Female"
         marital_status = "Unmarried" if input_data['Married'] == 0 else "Married"
         credit_text = "No Unclear Debts" if input_data['Credit_History'] == 1 else "Unclear Debts"
@@ -110,6 +105,22 @@ def main():
         
         st.markdown(summary_text)
 
+        # Explanation Section
+        st.write("---")
+        if result == "Approved":
+            st.write("### Explanation:")
+            st.write("Your application was **Approved** based on factors such as sufficient monthly income, a manageable loan amount, and a positive credit history.")
+        else:
+            st.write("### Explanation:")
+            st.write("Your application was **Rejected**. This could be due to insufficient monthly income, a high loan amount relative to your income, or an unclear credit history.")
+
+        # Display approval or rejection message
+        st.write("---")
+        if result == "Approved":
+            st.success("✅ Your loan application status: Approved")
+        else:
+            st.error("❌ Your loan application status: Rejected")
+
     # Additional Information Section at the end
     st.write("---")
     with st.expander("Why Was My Application Rejected?"):
@@ -121,3 +132,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+   
