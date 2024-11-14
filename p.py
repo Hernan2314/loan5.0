@@ -18,7 +18,7 @@ def impute_missing_values(features):
         'Gender': 0,  # Default to Male
         'Married': 0,  # Default to Unmarried
         'ApplicantIncome': 5000,  # Default income
-        'LoanAmount': 150,  # Default loan amount (median in thousands)
+        'LoanAmount': 150,  # Default loan amount (in thousands)
         'Credit_History': 1  # Default to clear debts
     }
     filled_features = {key: features.get(key, defaults[key]) for key in defaults}
@@ -28,11 +28,15 @@ def impute_missing_values(features):
 def prediction(classifier, scaler, **kwargs):
     # Pre-process user input and get DataFrame with feature names
     features = impute_missing_values(kwargs)
-    st.write("Features DataFrame:", features)  # Diagnostic print for inspection
+    
+    # Ensure correct column order to match scaler's expectations
+    expected_columns = scaler.feature_names_in_
+    features = features[expected_columns]
 
     # Scale the features
     scaled_features = scaler.transform(features)
     prediction = classifier.predict(scaled_features)
+    
     return 'Approved' if prediction == 1 else 'Rejected'
 
 # Streamlit Interface
@@ -101,18 +105,35 @@ def main():
 
         # Summary Section
         st.write("---")
-        st.markdown('<p class="label">Summary</p>', unsafe_allow_html=True)
-        for key, value in input_data.items():
-            st.write(f"**{key.replace('_', ' ').title()}**: {value}")
+        st.markdown('<p class="label">Application Summary</p>', unsafe_allow_html=True)
+        
+        # Display summary of inputs
+        gender_text = "Male" if input_data['Gender'] == 0 else "Female"
+        marital_status = "Unmarried" if input_data['Married'] == 0 else "Married"
+        credit_text = "No Unclear Debts" if input_data['Credit_History'] == 1 else "Unclear Debts"
+        
+        summary_text = f"""
+        - **Gender**: {gender_text}
+        - **Marital Status**: {marital_status}
+        - **Monthly Income**: ${input_data['ApplicantIncome']}
+        - **Loan Amount Requested**: ${input_data['LoanAmount']}000
+        - **Credit History**: {credit_text}
+        """
+        
+        st.markdown(summary_text)
 
-    # Additional Information Section at the end
-    st.write("---")
-    with st.expander("Why Was My Application Rejected?"):
-        st.write("Rejections may be due to insufficient income, a high loan amount relative to income, or unclear credit history. Adjusting these factors may improve approval chances.")
-    with st.expander("Why Was My Application Approved?"):
-        st.write("Approval can result from sufficient income, a reasonable loan amount, and a good credit history. Meeting these criteria improves approval chances.")
-    with st.expander("Improving Your Approval Chances"):
-        st.write("To increase approval likelihood, consider building a stronger credit history, ensuring your loan amount is reasonable relative to income, and maintaining a stable income level.")
+        # Explanation Section
+        st.write("---")
+        if result == "Approved":
+            st.write("### Explanation:")
+            st.write("Your application was **Approved** based on factors such as sufficient monthly income, a manageable loan amount, and a positive credit history.")
+        else:
+            st.write("### Explanation:")
+            st.write("Your application was **Rejected**. This could be due to insufficient monthly income, a high loan amount relative to your income, or an unclear credit history.")
+
+        # Additional warning if the loan amount is high relative to income
+        if LoanAmount > 200 and ApplicantIncome < 3000:
+            st.warning("⚠️ The requested loan amount is relatively high compared to your income, which might increase the risk of rejection.")
 
 if __name__ == '__main__':
     main()
