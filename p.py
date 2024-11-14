@@ -13,7 +13,7 @@ def load_model_and_scaler():
 
 # Impute missing values and ensure correct feature order
 def impute_missing_values(features):
-    # Define default values for imputation, including the Self_Employed feature
+    # Define default values for imputation, including all expected columns
     defaults = {
         'Gender': 0,             # Default to Male
         'Married': 0,            # Default to Unmarried
@@ -36,6 +36,9 @@ def impute_missing_values(features):
 def prediction(classifier, scaler, **kwargs):
     # Pre-process user input and ensure correct feature order
     features = impute_missing_values(kwargs)
+    
+    # Reorder columns to match the scaler's expected feature order
+    features = features[scaler.feature_names_in_]
     
     # Scale the features
     scaled_features = scaler.transform(features)
