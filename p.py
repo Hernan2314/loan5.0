@@ -1,5 +1,6 @@
 import streamlit as st
 import joblib
+import pandas as pd
 
 # Load the model and scaler with caching
 @st.cache(allow_output_mutation=True)
@@ -10,7 +11,7 @@ def load_model_and_scaler():
     scaler = joblib.load('scaler.pkl')
     return classifier, scaler
 
-# Impute missing values with predefined defaults
+# Impute missing values and return as DataFrame with feature names
 def impute_missing_values(features):
     # Define default values for imputation, following the notebook’s approach
     defaults = {
@@ -20,13 +21,14 @@ def impute_missing_values(features):
         'LoanAmount': 150,  # Default loan amount (median in thousands)
         'Credit_History': 1  # Default to clear debts
     }
-    return [features.get(key, defaults[key]) for key in defaults]
+    filled_features = {key: features.get(key, defaults[key]) for key in defaults}
+    return pd.DataFrame([filled_features])  # Return as DataFrame with feature names
 
 # Prediction function for single input
 def prediction(classifier, scaler, **kwargs):
-    # Pre-process user input
+    # Pre-process user input and get DataFrame with feature names
     features = impute_missing_values(kwargs)
-    scaled_features = scaler.transform([features])
+    scaled_features = scaler.transform(features)  # No warnings now as features have names
     prediction = classifier.predict(scaled_features)
     return 'Approved' if prediction == 1 else 'Rejected'
 
