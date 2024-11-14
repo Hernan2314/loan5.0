@@ -13,7 +13,7 @@ def load_model_and_scaler():
 
 # Impute missing values and return as DataFrame with feature names
 def impute_missing_values(features):
-    # Define default values for imputation, following the notebook’s approach
+    # Define default values for imputation
     defaults = {
         'Gender': 0,  # Default to Male
         'Married': 0,  # Default to Unmarried
@@ -22,13 +22,16 @@ def impute_missing_values(features):
         'Credit_History': 1  # Default to clear debts
     }
     filled_features = {key: features.get(key, defaults[key]) for key in defaults}
-    return pd.DataFrame([filled_features])  # Return as DataFrame with feature names
+    return pd.DataFrame([filled_features], columns=defaults.keys())  # Ensure correct column order
 
 # Prediction function for single input
 def prediction(classifier, scaler, **kwargs):
     # Pre-process user input and get DataFrame with feature names
     features = impute_missing_values(kwargs)
-    scaled_features = scaler.transform(features)  # No warnings now as features have names
+    st.write("Features DataFrame:", features)  # Diagnostic print for inspection
+
+    # Scale the features
+    scaled_features = scaler.transform(features)
     prediction = classifier.predict(scaled_features)
     return 'Approved' if prediction == 1 else 'Rejected'
 
@@ -82,4 +85,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
