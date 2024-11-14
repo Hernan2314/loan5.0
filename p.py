@@ -31,28 +31,33 @@ def prediction(classifier, **kwargs):
 def main():
     st.set_page_config(page_title="Loan Approval Pro", page_icon="💼", layout="centered")
 
+    # Custom CSS for styling
     st.markdown("""
         <style>
         .title { font-size: 2.5em; font-weight: bold; color: #2e3a45; }
         .subtitle { font-size: 1.2em; color: #6c757d; }
+        .name { font-size: 1em; font-weight: bold; color: #333333; }
         .label { font-weight: bold; font-size: 1.1em; color: #333; }
         .info { color: #0066cc; font-style: italic; }
         </style>
         """, unsafe_allow_html=True)
 
+    # Display name above the title
+    st.markdown('<p class="name">Developed by Hernan Andres Fermin</p>', unsafe_allow_html=True)
     st.markdown('<p class="title">💼 Loan Approval Pro</p>', unsafe_allow_html=True)
     st.markdown('<p class="subtitle">A Trusted Solution for Financial Decision Making</p>', unsafe_allow_html=True)
 
+    # About and explanation sections
     with st.expander("About This Tool"):
         st.write("Loan Approval Pro helps financial institutions make data-driven decisions on loan applications using key applicant details.")
     with st.expander("How the Prediction Works"):
         st.write("This tool uses a machine learning model trained on historical loan data, considering factors like gender, marital status, income, loan amount, and credit history.")
 
+    # Load model
     classifier = load_model()
 
-    st.markdown('<p class="label">Application Details</p>', unsafe_allow_html=True)
-
     # Input fields
+    st.markdown('<p class="label">Application Details</p>', unsafe_allow_html=True)
     col1, col2 = st.columns(2)
     with col1:
         Gender = st.radio("Select your Gender:", ("Male", "Female"), help="Select the applicant's gender.")
@@ -66,7 +71,7 @@ def main():
     Credit_History = st.selectbox("Credit History Status:", ("Unclear Debts", "No Unclear Debts"), help="Specify the applicant's credit history status.")
     Self_Employed = st.radio("Self Employed:", ("No", "Yes"), help="Specify if the applicant is self-employed.")
 
-    # Convert inputs to match model expectations
+    # Prepare input data for prediction
     input_data = {
         'Gender': 0 if Gender == "Male" else 1,
         'Married': 0 if Married == "Unmarried" else 1,
