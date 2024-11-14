@@ -11,15 +11,21 @@ def load_model_and_scaler():
     scaler = joblib.load('scaler.pkl')
     return classifier, scaler
 
-# Impute missing values and ensure correct feature order
+# Impute missing values and include all features used during training
 def impute_missing_values(features):
-    # Define default values for imputation
+    # Define default values for imputation, including extra columns
     defaults = {
-        'Gender': 0,  # Default to Male
-        'Married': 0,  # Default to Unmarried
-        'ApplicantIncome': 5000,  # Default income
-        'LoanAmount': 150,  # Default loan amount (in thousands)
-        'Credit_History': 1  # Default to clear debts
+        'Gender': 0,             # Default to Male
+        'Married': 0,            # Default to Unmarried
+        'ApplicantIncome': 5000, # Default income
+        'LoanAmount': 150,       # Default loan amount (in thousands)
+        'Credit_History': 1,     # Default to clear debts
+        # Additional columns required by scaler/model
+        'CoapplicantIncome': 0,  # Default to no coapplicant income
+        'Dependents': 0,         # Default to 0 dependents
+        'Education': 0,          # Default to Graduate
+        'Loan_Amount_Term': 360, # Default term in months
+        'Property_Area': 0       # Default to Urban
     }
     # Ensure features have all expected columns with defaults if necessary
     filled_features = {key: features.get(key, defaults[key]) for key in defaults}
