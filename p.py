@@ -58,7 +58,7 @@ def main():
     classifier = load_model()
 
     # Step 1: Applicant Information
-    st.write("### Step 1 of 2: Applicant Information")
+    st.write("### Step 1: Applicant Information")
     col1, col2 = st.columns(2)
     with col1:
         Gender = st.radio("👤 Select your Gender:", ("Male", "Female"), help="Select the applicant's gender.")
@@ -66,7 +66,7 @@ def main():
         Married = st.radio("💍 Marital Status:", ("Unmarried", "Married"), help="Select the applicant's marital status.")
 
     # Step 2: Financial Details
-    st.write("### Step 2 of 2: Financial Details")
+    st.write("### Step 2: Financial Details")
     ApplicantIncome = st.slider("💰 Applicant's Monthly Income (in USD)", min_value=0, max_value=50000, step=500, value=3800,
                                 help="Enter the monthly income of the applicant.")
     LoanAmount = st.slider("💵 Loan Amount Requested (in thousands)", min_value=0, max_value=500, step=1, value=128,
@@ -141,4 +141,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
