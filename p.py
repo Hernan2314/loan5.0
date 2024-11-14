@@ -11,24 +11,23 @@ def load_model_and_scaler():
     scaler = joblib.load('scaler.pkl')
     return classifier, scaler
 
-# Impute missing values and ensure correct feature order
 def impute_missing_values(features):
-    # Define default values for imputation, including all expected columns
+    # Use typical values for approved applications based on your analysis
     defaults = {
-        'Gender': 0,             # Default to Male
-        'Married': 0,            # Default to Unmarried
-        'ApplicantIncome': 5000, # Default income
-        'LoanAmount': 150,       # Default loan amount (in thousands)
-        'Credit_History': 1,     # Default to clear debts
-        # Additional columns required by scaler/model
-        'CoapplicantIncome': 0,  # Default to no coapplicant income
-        'Dependents': 0,         # Default to 0 dependents
-        'Education': 0,          # Default to Graduate
-        'Loan_Amount_Term': 360, # Default term in months
-        'Property_Area': 0,      # Default to Urban
-        'Self_Employed': 0       # Default to No
+        'Gender': 0,               # Default to Male (since the median is 0.0 for Gender)
+        'Married': 1,              # Default to Married (since the median is 1.0 for Married)
+        'ApplicantIncome': 3800,   # Using the median for ApplicantIncome for more stability
+        'LoanAmount': 128,         # Using the median LoanAmount (in thousands)
+        'Credit_History': 1,       # Default to clear credit history, as the median is 1.0
+        # Additional columns that may be expected by the model
+        'CoapplicantIncome': 0,    # Default to no coapplicant income if it wasn't available
+        'Dependents': 0,           # Default to 0 dependents, if this is common for approvals
+        'Education': 0,            # Assume Graduate if common in approvals (if 0 represents Graduate)
+        'Loan_Amount_Term': 360,   # Typical loan term for approved loans
+        'Property_Area': 1,        # Default to Semiurban if it's common in approvals
+        'Self_Employed': 0         # Default to No if most approved applicants are not self-employed
     }
-    # Ensure features have all expected columns with defaults if necessary
+    # Fill missing values with defaults
     filled_features = {key: features.get(key, defaults[key]) for key in defaults}
     return pd.DataFrame([filled_features], columns=defaults.keys())
 
