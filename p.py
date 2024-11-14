@@ -5,7 +5,6 @@ import pandas as pd
 # Load the model with caching
 @st.cache(allow_output_mutation=True)
 def load_model():
-    # Load the classifier only, without the scaler
     with open('classifier.pkl', 'rb') as model_file:
         classifier = joblib.load(model_file)
     return classifier
@@ -44,7 +43,6 @@ def main():
     st.markdown('<p class="title">💼 Loan Approval Pro</p>', unsafe_allow_html=True)
     st.markdown('<p class="subtitle">A Trusted Solution for Financial Decision Making</p>', unsafe_allow_html=True)
 
-    # Information Sections
     with st.expander("About This Tool"):
         st.write("Loan Approval Pro helps financial institutions make data-driven decisions on loan applications using key applicant details.")
     with st.expander("How the Prediction Works"):
@@ -54,15 +52,13 @@ def main():
 
     st.markdown('<p class="label">Application Details</p>', unsafe_allow_html=True)
 
-    # Gender and Marital Status
+    # Input fields
     col1, col2 = st.columns(2)
     with col1:
         Gender = st.radio("Select your Gender:", ("Male", "Female"), help="Select the applicant's gender.")
     with col2:
         Married = st.radio("Marital Status:", ("Unmarried", "Married"), help="Select the applicant's marital status.")
 
-    # Income and Loan Information
-    st.markdown('<p class="label">Income and Loan Information</p>', unsafe_allow_html=True)
     ApplicantIncome = st.slider("Applicant's Monthly Income (in USD)", min_value=0, max_value=50000, step=500, value=3800,
                                 help="Enter the monthly income of the applicant.")
     LoanAmount = st.slider("Loan Amount Requested (in thousands)", min_value=0, max_value=500, step=1, value=128,
@@ -70,6 +66,7 @@ def main():
     Credit_History = st.selectbox("Credit History Status:", ("Unclear Debts", "No Unclear Debts"), help="Specify the applicant's credit history status.")
     Self_Employed = st.radio("Self Employed:", ("No", "Yes"), help="Specify if the applicant is self-employed.")
 
+    # Convert inputs to match model expectations
     input_data = {
         'Gender': 0 if Gender == "Male" else 1,
         'Married': 0 if Married == "Unmarried" else 1,
@@ -78,19 +75,23 @@ def main():
         'Credit_History': 0 if Credit_History == "Unclear Debts" else 1
     }
 
-    # Show a warning if loan amount is high relative to income
+    # Show warning if loan amount is high relative to income
     if LoanAmount > 200 and ApplicantIncome < 3000:
         st.warning("⚠️ The requested loan amount is relatively high compared to your income, which might increase the risk of rejection.")
 
     # Prediction Button
     if st.button("Predict My Loan Status"):
+        # Display approval or rejection message immediately
         result = prediction(classifier, **input_data)
+        if result == "Approved":
+            st.success("✅ Your loan application status: Approved")
+        else:
+            st.error("❌ Your loan application status: Rejected")
 
         # Summary Section
         st.write("---")
         st.markdown('<p class="label">Application Summary</p>', unsafe_allow_html=True)
         
-        # Display summary of inputs
         gender_text = "Male" if input_data['Gender'] == 0 else "Female"
         marital_status = "Unmarried" if input_data['Married'] == 0 else "Married"
         credit_text = "No Unclear Debts" if input_data['Credit_History'] == 1 else "Unclear Debts"
@@ -107,19 +108,11 @@ def main():
 
         # Explanation Section
         st.write("---")
+        st.write("### Explanation:")
         if result == "Approved":
-            st.write("### Explanation:")
             st.write("Your application was **Approved** based on factors such as sufficient monthly income, a manageable loan amount, and a positive credit history.")
         else:
-            st.write("### Explanation:")
             st.write("Your application was **Rejected**. This could be due to insufficient monthly income, a high loan amount relative to your income, or an unclear credit history.")
-
-        # Display approval or rejection message
-        st.write("---")
-        if result == "Approved":
-            st.success("✅ Your loan application status: Approved")
-        else:
-            st.error("❌ Your loan application status: Rejected")
 
     # Additional Information Section at the end
     st.write("---")
@@ -132,5 +125,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-   
